@@ -381,10 +381,13 @@ mintpy.load.waterMaskFile    = $DATA_DIR/SanFranSenDT42/mask/watermask.msk
 ### [ASF HyP3](https://hyp3-docs.asf.alaska.edu/)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 **WARNING: The incidence angle file offered by HyP3 is called *_lv_theta.tif.**
 
 please refer the notebook prep_TS_hyp3.ipynb at https://github.com/insarlab/MintPy-tutorial.
 =======
+=======
+>>>>>>> main
 1. Search, request and download GUNW products using [hyp3_sdk](https://nbviewer.jupyter.org/github/ASFHyP3/hyp3-sdk/blob/main/docs/sdk_example.ipynb).
 >>>>>>> main
 
@@ -394,6 +397,7 @@ please refer the notebook prep_TS_hyp3.ipynb at https://github.com/insarlab/Mint
    
 The example (notebook) shows the both steps.
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 The completed directory structure and files ready for process via MintPy are: 
 
@@ -487,6 +491,13 @@ Here is an example workflow: [smallbaselineApp_hyp3](https://nbviewer.jupyter.or
 ```
 $DATA_DIR/RidgecrestSenDT71
 ├── hyp3
+=======
+Here is an example workflow: [smallbaselineApp_hyp3](https://nbviewer.jupyter.org/github/insarlab/MintPy-tutorial/blob/main/smallbaselineApp_hyp3.ipynb).
+
+```
+$DATA_DIR/RidgecrestSenDT71
+├── hyp3
+>>>>>>> main
 │   ├── S1AA_20190622T135157_20190704T135158_VVP012_INT80_G_ueF_4C43
 │   │   ├── S1AA_20190622T135157_20190704T135158_VVP012_INT80_G_ueF_4C43_corr_clip.tif
 │   │   ├── S1AA_20190622T135157_20190704T135158_VVP012_INT80_G_ueF_4C43_dem_clip.tif
@@ -503,6 +514,9 @@ $DATA_DIR/RidgecrestSenDT71
 │   └── ...
 └── mintpy
     └── RidgecrestSenDT71.txt
+<<<<<<< HEAD
+>>>>>>> main
+=======
 >>>>>>> main
 ```
 The corresponding template options for `load_data` in the custom cfg file (for example, Ridgecrest.txt):
@@ -510,6 +524,7 @@ The corresponding template options for `load_data` in the custom cfg file (for e
 ```Ridgecrest.txt
 intpy.load.processor        = hyp3
 ##---------interferogram datasets:
+<<<<<<< HEAD
 <<<<<<< HEAD
 mintpy.load.unwFile          = $DATA_DIR/Ridgecrest/*/*unw_phase_clip.tif
 mintpy.load.corFile          = $DATA_DIR/Ridgecrest/*/*corr_clip.tif
@@ -519,6 +534,8 @@ mintpy.load.incAngleFile     = $DATA_DIR/Ridgecrest/*/*lv_theta_clip.tif
 '''
 
 =======
+=======
+>>>>>>> main
 mintpy.load.unwFile          = $DATA_DIR/RidgecrestSenDT71/hyp3/*/*unw_phase_clip.tif
 mintpy.load.corFile          = $DATA_DIR/RidgecrestSenDT71/hyp3/*/*corr_clip.tif
 ##---------geometry datasets:
