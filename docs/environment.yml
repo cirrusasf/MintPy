@@ -20,12 +20,12 @@ dependencies:
   - matplotlib
   - numpy
   - pip
+  - pykml>=0.2
   - pyproj
   - scikit-image
   - scipy
   - pip:
     - git+https://github.com/insarlab/PySolid.git
-    - git+https://github.com/tylere/pykml.git
   # for ARIA, FRInGE, HyP3, GMTSAR
   - gdal>=3
   # for PyAPS

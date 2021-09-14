@@ -126,6 +126,7 @@ def create_parser():
     parser = arg_group.add_gps_argument(parser)
     parser = arg_group.add_mask_argument(parser)
     parser = arg_group.add_map_argument(parser)
+    parser = arg_group.add_memory_argument(parser)
     parser = arg_group.add_point_argument(parser)
     parser = arg_group.add_reference_argument(parser)
     parser = arg_group.add_save_argument(parser)
@@ -163,6 +164,15 @@ def cmd_line_parse(iargs=None):
         inps.disp_cbar = False
     if not inps.disp_axis:
         inps.disp_tick = False
+    if inps.flip_lr or inps.flip_ud:
+        inps.auto_flip = False
+
+    # check geo-only options for files in radar-coordinates
+    geo_opt_names = ['--coord', '--show-gps', '--coastline', '--lalo-label', '--lalo-step', '--scalebar']
+    geo_opt_names = list(set(geo_opt_names) & set(iargs))
+    if geo_opt_names and 'Y_FIRST' not in readfile.read_attribute(inps.file).keys():
+        for opt_name in geo_opt_names:
+            print('WARNING: {} is NOT supported for files in radar-coordinate, ignore it and continue.'.format(opt_name))
 
     # verbose print using --noverbose option
     global vprint
@@ -177,9 +187,6 @@ def cmd_line_parse(iargs=None):
     # Backend setting
     if not inps.disp_fig:
         plt.switch_backend('Agg')
-
-    if inps.flip_lr or inps.flip_ud:
-        inps.auto_flip = False
 
     return inps
 
@@ -435,7 +442,19 @@ def update_data_with_plot_inps(data, metadata, inps):
     if inps.wrap:
         inps.vlim = inps.wrap_range
 
-    # 3. update display min/max
+    # math operation
+    if inps.math_operation:
+        vprint('Apply math operation: {}'.format(inps.math_operation))
+        if inps.math_operation == 'square':
+            data = np.square(data)
+        elif inps.math_operation == 'sqrt':
+            data = np.sqrt(data)
+        elif inps.math_operation == 'reverse':
+            data *= -1
+        elif inps.math_operation == 'inverse':
+            data = 1. / data
+
+    # 4. update display min/max
     inps.dlim = [np.nanmin(data), np.nanmax(data)]
     if not inps.vlim: # and data.ndim < 3:
         inps.cmap_lut, inps.vlim = pp.auto_adjust_colormap_lut_and_disp_limit(data, print_msg=inps.print_msg)
@@ -527,6 +546,10 @@ def plot_slice(ax, data, metadata, inps=None):
                        alpha=inps.transparency, animated=inps.animation, zorder=1)
 
         # Scale Bar
+        if inps.coord_unit.startswith('deg') and (inps.geo_box[2] - inps.geo_box[0]) > 30:
+            # do not plot scalebar if the longitude span > 30 deg
+            inps.disp_scalebar = False
+
         if inps.disp_scalebar:
             vprint('plot scale bar: {}'.format(inps.scalebar))
             pp.draw_scalebar(ax,
@@ -751,7 +774,7 @@ def read_input_file_info(inps):
     vprint('file size in y/x: {}'.format((inps.length, inps.width)))
 
     # File dataset List
-    inps.sliceList = readfile.get_slice_list(inps.file)
+    inps.sliceList = readfile.get_slice_list(inps.file, no_complex=True)
 
     # Read input list of dataset to display
     inps, atr = read_dataset_input(inps)
@@ -1342,6 +1365,7 @@ def prepare4multi_subplots(inps, metadata):
         #   inps.multilook_num ==1 (no --multilook-num input)
         # inps.multilook is used for this check ONLY
         inps.multilook_num = pp.auto_multilook_num(inps.pix_box, inps.fig_row_num * inps.fig_col_num,
+                                                   max_memory=inps.maxMemory,
                                                    print_msg=inps.print_msg)
 
     # multilook mask
@@ -1547,18 +1571,6 @@ class viewer():
                                          print_msg=False)[0]
                 data[data != 0.] -= ref_data
 
-            # math operation
-            if self.math_operation:
-                vprint('Apply math operation: {}'.format(self.math_operation))
-                if self.math_operation == 'square':
-                    data = np.square(data)
-                elif self.math_operation == 'sqrt':
-                    data = np.sqrt(data)
-                elif self.math_operation == 'reverse':
-                    data *= -1
-                elif self.math_operation == 'inverse':
-                    data = 1. / data
-
             # masking
             if self.zero_mask:
                 vprint('masking pixels with zero value')
@@ -1591,6 +1603,13 @@ class viewer():
 
         # Multiple Subplots
         else:
+            # warn single-subplot options
+            opt_names = ['--show-gps', '--coastline', '--lalo-label', '--lalo-step', '--scalebar',
+                         '--pts-yx', '--pts-lalo', '--pts-file']
+            opt_names = list(set(opt_names) & set(self.iargs))
+            for opt_name in opt_names:
+                print('WARNING: {} is NOT supported for multi-subplots, ignore it and continue.'.format(opt_name))
+
             # prepare
             self = prepare4multi_subplots(self, metadata=self.atr)
 

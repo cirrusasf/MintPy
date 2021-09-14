@@ -380,9 +380,13 @@ mintpy.load.waterMaskFile    = $DATA_DIR/SanFranSenDT42/mask/watermask.msk
 
 ### [ASF HyP3](https://hyp3-docs.asf.alaska.edu/)
 
+<<<<<<< HEAD
 **WARNING: The incidence angle file offered by HyP3 is called *_lv_theta.tif.**
 
 please refer the notebook prep_TS_hyp3.ipynb at https://github.com/insarlab/MintPy-tutorial.
+=======
+1. Search, request and download GUNW products using [hyp3_sdk](https://nbviewer.jupyter.org/github/ASFHyP3/hyp3-sdk/blob/main/docs/sdk_example.ipynb).
+>>>>>>> main
 
 1. Search, request and download GUNW products using [hyp3_sdk].
 
@@ -390,6 +394,7 @@ please refer the notebook prep_TS_hyp3.ipynb at https://github.com/insarlab/Mint
    
 The example (notebook) shows the both steps.
 
+<<<<<<< HEAD
 The completed directory structure and files ready for process via MintPy are: 
 
 ```
@@ -476,12 +481,36 @@ $DATA_DIR/Ridgecrest
 |   ...
 └── mintpy
     └── Ridgecrest.txt
+=======
+Here is an example workflow: [smallbaselineApp_hyp3](https://nbviewer.jupyter.org/github/insarlab/MintPy-tutorial/blob/main/smallbaselineApp_hyp3.ipynb).
+
+```
+$DATA_DIR/RidgecrestSenDT71
+├── hyp3
+│   ├── S1AA_20190622T135157_20190704T135158_VVP012_INT80_G_ueF_4C43
+│   │   ├── S1AA_20190622T135157_20190704T135158_VVP012_INT80_G_ueF_4C43_corr_clip.tif
+│   │   ├── S1AA_20190622T135157_20190704T135158_VVP012_INT80_G_ueF_4C43_dem_clip.tif
+│   │   ├── S1AA_20190622T135157_20190704T135158_VVP012_INT80_G_ueF_4C43_lv_theta_clip.tif
+│   │   ├── S1AA_20190622T135157_20190704T135158_VVP012_INT80_G_ueF_4C43_unw_phase_clip.tif
+│   │   ├── S1AA_20190622T135157_20190704T135158_VVP012_INT80_G_ueF_4C43_water_mask_clip.tif
+│   │   ├── S1AA_20190622T135157_20190704T135158_VVP012_INT80_G_ueF_4C43.txt
+│   │   └── ...
+│   ├── S1AA_20190622T135157_20190716T135159_VVP024_INT80_G_ueF_BA28
+│   │   ├── S1AA_20190622T135157_20190716T135159_VVP024_INT80_G_ueF_BA28_corr_clip.tif
+│   │   ├── S1AA_20190622T135157_20190716T135159_VVP024_INT80_G_ueF_BA28_unw_phase_clip.tif
+│   │   ├── S1AA_20190622T135157_20190716T135159_VVP024_INT80_G_ueF_BA28.txt
+│   │   └── ...
+│   └── ...
+└── mintpy
+    └── RidgecrestSenDT71.txt
+>>>>>>> main
 ```
 The corresponding template options for `load_data` in the custom cfg file (for example, Ridgecrest.txt):
 
 ```Ridgecrest.txt
 intpy.load.processor        = hyp3
 ##---------interferogram datasets:
+<<<<<<< HEAD
 mintpy.load.unwFile          = $DATA_DIR/Ridgecrest/*/*unw_phase_clip.tif
 mintpy.load.corFile          = $DATA_DIR/Ridgecrest/*/*corr_clip.tif
 ##---------geometry datasets:
@@ -489,6 +518,15 @@ mintpy.load.demFile          = $DATA_DIR/Ridgecrest/*/*dem_clip.tif
 mintpy.load.incAngleFile     = $DATA_DIR/Ridgecrest/*/*lv_theta_clip.tif
 '''
 
+=======
+mintpy.load.unwFile          = $DATA_DIR/RidgecrestSenDT71/hyp3/*/*unw_phase_clip.tif
+mintpy.load.corFile          = $DATA_DIR/RidgecrestSenDT71/hyp3/*/*corr_clip.tif
+##---------geometry datasets:
+mintpy.load.demFile          = $DATA_DIR/RidgecrestSenDT71/hyp3/*/*dem_clip.tif
+mintpy.load.incAngleFile     = $DATA_DIR/RidgecrestSenDT71/hyp3/*/*lv_theta_clip.tif
+mintpy.load.waterMaskFile    = $DATA_DIR/RidgecrestSenDT71/hyp3/*/*water_mask_clip.tif
+```
+>>>>>>> main
 
 ### [GMTSAR](https://github.com/gmtsar/gmtsar) ###
 

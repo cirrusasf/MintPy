@@ -1085,6 +1085,8 @@ class TimeSeriesAnalysis:
         print('\n******************** plot & save to pic ********************')
 
         tropo_model = self.template['mintpy.troposphericDelay.weatherModel'].upper()
+        max_plot_memory = abs(float(self.template['mintpy.plot.maxMemory']))
+        max_memory = abs(float(self.template['mintpy.compute.maxMemory']))
         stack_file, geom_file, lookup_file = ut.check_loaded_dataset(self.workDir, print_msg=False)[1:]
         mask_file = os.path.join(self.workDir, 'maskTempCoh.h5')
         geo_dir = os.path.join(self.workDir, 'geo')
@@ -1101,7 +1103,7 @@ class TimeSeriesAnalysis:
         # for each element list:
         # the 1st item is the data file
         # the 2nd item is the dataset if applicable
-        opt4ts = ['--mask', mask_file, '--noaxis', '-u', 'cm', '--wrap-range', '-10', '10']
+        opt4ts = ['--noaxis', '-u', 'cm', '--wrap', '--wrap-range', '-5', '5']
         iargs_list0 = [
             # key files
             ['velocity.h5',          '--dem', geom_file, '--mask', mask_file, '-u', 'cm'],
@@ -1135,6 +1137,7 @@ class TimeSeriesAnalysis:
             # files from geocoding
             [os.path.join(geo_dir, 'geo_maskTempCoh.h5'),       '-c', 'gray'],
             [os.path.join(geo_dir, 'geo_temporalCoherence.h5'), '-c', 'gray'],
+            [os.path.join(geo_dir, 'geo_avgSpatialCoh.h5'),     '-c', 'gray'],
             [os.path.join(geo_dir, 'geo_velocity.h5'),          'velocity'],
             [os.path.join(geo_dir, 'geo_timeseries*.h5')] + opt4ts,
 
@@ -1171,7 +1174,7 @@ class TimeSeriesAnalysis:
                               and iargs[1] in stack_dset_list))]
 
         # add the following common options to all element lists
-        opt_common = ['--dpi', '150', '--noverbose', '--nodisplay', '--update']
+        opt_common = ['--dpi', '150', '--noverbose', '--nodisplay', '--update', '--memory', str(max_plot_memory)]
         iargs_list = [opt_common + iargs for iargs in iargs_list]
 
         # run view
@@ -1179,12 +1182,20 @@ class TimeSeriesAnalysis:
         run_parallel = False
         if self.template['mintpy.compute.cluster']:
             num_workers = int(self.template['mintpy.compute.numWorker'])
+
+            # limit number of parallel processes based on available CPU
             num_cores, run_parallel, Parallel, delayed = ut.check_parallel(
                 len(iargs_list),
                 print_msg=False,
                 maxParallelNum=num_workers)
 
-        if run_parallel:
+            # limit number of parallel processes based on memory limit
+            # default view.py call could use up to 1.5 GB reserved memory (~700 MB actual memory)
+            # scale based on utils.plot.auto_multilook_num()
+            plot_memory = 1.5 if 2.0 < max_plot_memory <= 4.0 else 1.5 * (max_plot_memory / 4.0)
+            num_cores = min(num_cores, max(int(max_memory / plot_memory), 1))
+
+        if run_parallel and num_cores > 1:
             print("parallel processing using {} cores ...".format(num_cores))
             Parallel(n_jobs=num_cores)(delayed(mintpy.view.main)(iargs) for iargs in iargs_list)
         else:

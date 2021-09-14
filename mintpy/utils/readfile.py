@@ -197,12 +197,13 @@ ENVI_BYTE_ORDER = {
 
 
 #########################################################################
-def read(fname, box=None, datasetName=None, print_msg=True, xstep=1, ystep=1):
+def read(fname, box=None, datasetName=None, print_msg=True, xstep=1, ystep=1, data_type=None):
     """Read one dataset and its attributes from input file.
     Parameters: fname       : str, path of file to read
                 datasetName : str or list of str, slice names
                 box         : 4-tuple of int area to read, defined in (x0, y0, x1, y1) in pixel coordinate
                 x/ystep     : int, number of pixels to pick/multilook for each output pixel
+                data_type   : numpy data type, e.g. np.float32, np.bool_, etc.
     Returns:    data        : 2/3-D matrix in numpy.array format, return None if failed
                 atr         : dictionary, attributes of data, return None if failed
     Examples:
@@ -246,6 +247,11 @@ def read(fname, box=None, datasetName=None, print_msg=True, xstep=1, ystep=1):
                                      box=box,
                                      xstep=xstep,
                                      ystep=ystep)
+
+    # customized output data type
+    if data_type:
+        data = np.array(data, dtype=data_type)
+
     return data, atr
 
 
@@ -286,13 +292,16 @@ def read_hdf5_file(fname, datasetName=None, box=None, xstep=1, ystep=1, print_ms
     elif isinstance(datasetName, str):
         datasetName = [datasetName]
 
-    # if datasetName is all numerical (or include only T), add dsFamily as prefix
-    if all(i.replace('T','').isdigit() for i in datasetName):
-        datasetName = ['{}-{}'.format(ds_3d_list[0], i) for i in datasetName]
+    # if datasetName is all date info, add dsFamily as prefix
+    # a) if all digit, e.g. YYYYMMDD
+    # b) if in isoformat(), YYYY-MM-DDTHH:MM, etc.
+    if all(x.isdigit() or x[:4].isdigit() for x in datasetName):
+        datasetName = ['{}-{}'.format(ds_3d_list[0], x) for x in datasetName]
 
     # Input Argument: decompose slice list into dsFamily and inputDateList
     dsFamily = datasetName[0].split('-')[0]
-    inputDateList = [i.replace(dsFamily,'').replace('-','') for i in datasetName]
+    inputDateList = [x.replace(dsFamily,'') for x in datasetName]
+    inputDateList = [x[1:] for x in inputDateList if x.startswith('-')]
 
     # read hdf5
     with h5py.File(fname, 'r') as f:
@@ -330,7 +339,7 @@ def read_hdf5_file(fname, datasetName=None, box=None, xstep=1, ystep=1, print_ms
             if not inputDateList or inputDateList == ['']:
                 slice_flag[:] = True
             else:
-                date_list = [i.split('-')[1] for i in
+                date_list = [i.split('-', 1)[1] for i in
                              [j for j in slice_list if j.startswith(dsFamily)]]
                 for d in inputDateList:
                     slice_flag[date_list.index(d)] = True
@@ -425,7 +434,15 @@ def read_binary_file(fname, datasetName=None, box=None, xstep=1, ystep=1):
                 band = 1
 
         elif k in ['slc']:
-            cpx_band = 'magnitude'
+            if datasetName:
+                if datasetName in ['amplitude','magnitude','intensity']:
+                    cpx_band = 'magnitude'
+                elif datasetName in ['band2','phase']:
+                    cpx_band = 'phase'
+                else:
+                    cpx_band = 'complex'
+            else:
+                cpx_band = 'complex'
 
         elif k.startswith('los') and datasetName and datasetName.startswith(('band2','az','head')):
             band = min(2, num_band)
@@ -569,10 +586,16 @@ def read_binary_file(fname, datasetName=None, box=None, xstep=1, ystep=1):
 
 
 #########################################################################
-def get_slice_list(fname):
+def get_slice_list(fname, no_complex=False):
     """Get list of 2D slice existed in file (for display)"""
     fbase, fext = os.path.splitext(os.path.basename(fname))
     fext = fext.lower()
+    # ignore certain meaningless file extensions
+    while fext in ['.geo', '.rdr', '.full', '.wgs84', '.grd']:
+        fbase, fext = os.path.splitext(fbase)
+    if not fext:
+        fext = fbase
+
     atr = read_attribute(fname)
     k = atr['FILE_TYPE']
 
@@ -638,15 +661,19 @@ def get_slice_list(fname):
             # isce los file
             slice_list = ['incidenceAngle', 'azimuthAngle']
 
-        elif fext in ['.int', '.unw']:
-            # do not check the actual num_band in order to support
-            # mag / pha / cpx reading like "multiple bands"
+        elif fext in ['.unw']:
             slice_list = ['magnitude', 'phase']
 
-        elif fbase.startswith('offset') and fext in ['.bip'] and num_band == 2:
+        elif fext in ['.int', '.slc']:
+            if no_complex:
+                slice_list = ['magnitude', 'phase']
+            else:
+                slice_list = ['complex']
+
+        elif fbase.startswith('off') and fext in ['.bip'] and num_band == 2:
             slice_list = ['azimuthOffset', 'rangeOffset']
 
-        elif fbase.startswith('offset') and fname.endswith('cov.bip') and num_band == 3:
+        elif fbase.startswith('off') and fname.endswith('cov.bip') and num_band == 3:
             slice_list = ['azimuthOffsetVar', 'rangeOffsetVar', 'offsetCovar']
 
         else:
@@ -727,7 +754,7 @@ def read_attribute(fname, datasetName=None, metafile_ext=None):
         # FILE_TYPE - k
         # pre-defined/known dataset/group names > existing FILE_TYPE > exsiting dataset/group names
         py2_mintpy_stack_files = ['interferograms', 'coherence', 'wrapped'] #obsolete mintpy format
-        if any(i in d1_list for i in ['unwrapPhase', 'azimuthOffset']):
+        if any(i in d1_list for i in ['unwrapPhase', 'rangeOffset', 'azimuthOffset']):
             k = 'ifgramStack'
         elif any(i in d1_list for i in ['height', 'latitude', 'azimuthCoord']):
             k = 'geometry'
@@ -1327,6 +1354,7 @@ def read_gdal_vrt(fname):
 
     # projection / coordinate unit
     srs = osr.SpatialReference(wkt=ds.GetProjection())
+    atr['EPSG'] = srs.GetAttrValue('AUTHORITY', 1)
     srs_name = srs.GetName()
     if srs_name and 'UTM' in srs_name:
         atr['UTM_ZONE'] = srs_name.split('UTM zone')[-1].strip()

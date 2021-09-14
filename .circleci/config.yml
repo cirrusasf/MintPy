@@ -38,8 +38,7 @@ jobs:
             git clone https://github.com/insarlab/PySolid.git ${HOME}/tools/PySolid
             # install dependencies
             source activate root
-            mamba install --verbose --yes --file ${MINTPY_HOME}/docs/requirements.txt gdal>=3 fortran-compiler
-            pip install git+https://github.com/tylere/pykml.git
+            mamba install --verbose --yes --file ${MINTPY_HOME}/docs/requirements.txt gdal">=3" fortran-compiler
             # compile pysolid Fortran code
             cd ${HOME}/tools/PySolid/pysolid
             f2py -c -m solid solid.for
@@ -55,7 +54,7 @@ jobs:
             export PATH=${MINTPY_HOME}/mintpy:${CONDA_PREFIX}/bin:${PATH}
             mkdir -p ${HOME}/data
             cd ${HOME}/data
-            ${MINTPY_HOME}/test/test_smallbaselineApp.py --dir ${HOME}/data --dset FernandinaSenDT128
+            ${MINTPY_HOME}/tests/test_smallbaselineApp.py --dir ${HOME}/data --dset FernandinaSenDT128
 
       - run:
           name: Testing MintPy on Example Dataset 2/4 - SanFranSenDT42 (ARIA)
@@ -64,7 +63,7 @@ jobs:
             export PATH=${MINTPY_HOME}/mintpy:${CONDA_PREFIX}/bin:${PATH}
             mkdir -p ${HOME}/data
             cd ${HOME}/data
-            ${MINTPY_HOME}/test/test_smallbaselineApp.py --dir ${HOME}/data --dset SanFranSenDT42
+            ${MINTPY_HOME}/tests/test_smallbaselineApp.py --dir ${HOME}/data --dset SanFranSenDT42
 
       - run:
           name: Testing MintPy on Example Dataset 3/4 - WellsEnvD2T399 (Gamma)
@@ -73,7 +72,7 @@ jobs:
             export PATH=${MINTPY_HOME}/mintpy:${CONDA_PREFIX}/bin:${PATH}
             mkdir -p ${HOME}/data
             cd ${HOME}/data
-            ${MINTPY_HOME}/test/test_smallbaselineApp.py --dir ${HOME}/data --dset WellsEnvD2T399
+            ${MINTPY_HOME}/tests/test_smallbaselineApp.py --dir ${HOME}/data --dset WellsEnvD2T399
 
       - run:
           name: Testing MintPy on Example Dataset 4/4 - WCapeSenAT29 (SNAP)
@@ -82,7 +81,7 @@ jobs:
             export PATH=${MINTPY_HOME}/mintpy:${CONDA_PREFIX}/bin:${PATH}
             mkdir -p ${HOME}/data
             cd ${HOME}/data
-            ${MINTPY_HOME}/test/test_smallbaselineApp.py --dir ${HOME}/data --dset WCapeSenAT29
+            ${MINTPY_HOME}/tests/test_smallbaselineApp.py --dir ${HOME}/data --dset WCapeSenAT29
 
 workflows:
   version: 2
