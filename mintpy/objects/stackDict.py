@@ -644,20 +644,10 @@ class geometryDict:
                         atr = readfile.read_attribute(self.file)
                         if (atr.get('PROCESSOR', 'isce') == 'hyp3'
                                 and atr.get('UNIT', 'degrees').startswith('rad')):
-<<<<<<< HEAD
-<<<<<<< HEAD
-                            print('    convert the unit of {:<15} from radian to degree'.format(dsName))
-                            data = (np.pi/2 -data)*180. / np.pi
-=======
+
                             print(('    convert {:<15} from Gamma (from horizontal in radian) to '
                                   'MintPy (from vertical in degree) convention.').format(dsName))
                             data = 90. - (data * 180. / np.pi)
->>>>>>> main
-=======
-                            print(('    convert {:<15} from Gamma (from horizontal in radian) to '
-                                  'MintPy (from vertical in degree) convention.').format(dsName))
-                            data = 90. - (data * 180. / np.pi)
->>>>>>> main
 
                     # write
                     ds = f.create_dataset(dsName,
